@@ -35,7 +35,7 @@ Every time an error in encountered, data is collected and a HTTP request is sent
 
 = Can I get anyone to host Elastik for me while I test this? =
 
-Contact the plugin authors and we may able to give you an account on our Elastik testing server. We cannot guarantee the uptime or data on our testing server.
+Contact the plugin authors and we may be able to give you an account on our Elastik testing server. We cannot guarantee the uptime or data on our testing server.
 
 = Can I get anyone to host Elastik for me? (I can pay) =
 
