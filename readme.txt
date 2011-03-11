@@ -3,7 +3,7 @@ Contributors: jarofgreen
 Tags: php, error, logging, ticket
 Requires at least: 3.0.4
 Tested up to: 3.1.0
-Stable tag: 0.1
+Stable tag: 0.2
 
 Logs errors with full information to an Elastik Ticket System. Errors can be tracked and emails can be sent to devs from there.
 
