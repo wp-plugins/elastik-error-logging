@@ -49,6 +49,10 @@ We do not know of anyone.
 
 Simply throw an exception and if you don't catch it we will! http://php.net/manual/en/language.exceptions.php
 
+= What versions of PHP does this run on? =
+
+PHP 5.2 and above.
+
 == Screenshots ==
 
 1. The plugin settings you can configure.
@@ -59,7 +63,10 @@ Simply throw an exception and if you don't catch it we will! http://php.net/manu
 = 0.1 =
 * First Version
 
+= 0.2 =
+* Bug fix for PHP 5.2
+
 == Upgrade Notice ==
 
-
-
+= 0.2 =
+Bug fix for PHP 5.2.

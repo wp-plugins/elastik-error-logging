@@ -142,6 +142,7 @@ class ElastikErrorLogging {
 	}
 
 
+	/** We use 8192 for E_DEPRECATED & 16384 for E_USER_DEPRECATED so this code runs on PHP 5.2 where those constants aren't defined. **/
 	private static $errorCodes = array(
 			E_ERROR => "ERROR",
 			E_WARNING  => "WARNING" ,
@@ -156,8 +157,8 @@ class ElastikErrorLogging {
 			E_USER_NOTICE  => "USER_NOTICE" ,
 			E_STRICT => "STRICT",
 			E_RECOVERABLE_ERROR  => "RECOVERABLE_ERROR" ,
-			E_DEPRECATED => "DEPRECATED",
-			E_USER_DEPRECATED  => "USER_DEPRECATED" ,
+			8192 => "DEPRECATED",
+			16384  => "USER_DEPRECATED" ,
 		);
 
 	private static function report_this_error_type($errno) {
@@ -169,8 +170,8 @@ class ElastikErrorLogging {
 		if ($errno == E_USER_WARNING) return (bool)(get_option('ElastikErrorLoggingReportUserWarning') == 'yes');
 		if ($errno == E_USER_NOTICE) return (bool)(get_option('ElastikErrorLoggingReportUserNotice') == 'yes');
 		if ($errno == E_RECOVERABLE_ERROR) return (bool)(get_option('ElastikErrorLoggingReportRecoverableError') == 'yes');
-		if ($errno == E_DEPRECATED) return (bool)(get_option('ElastikErrorLoggingReportDeprecated') == 'yes');
-		if ($errno == E_USER_DEPRECATED) return (bool)(get_option('ElastikErrorLoggingReportUserDeprecated') == 'yes');
+		if ($errno == 8192) return (bool)(get_option('ElastikErrorLoggingReportDeprecated') == 'yes');
+		if ($errno == 16384) return (bool)(get_option('ElastikErrorLoggingReportUserDeprecated') == 'yes');
 		return true;
 	}
 
