@@ -3,17 +3,23 @@
 Plugin Name: elastik-error-logging
 Plugin URI: http://wordpress.org/extend/plugins/elastik-error-logging/
 Description: Logs errors with full information to an Elastik Ticket System. Errors can be tracked and emails can be sent to devs from there.L
-Version: 0.1
+Version: 0.2
 Author: James
 Author URI: http://jarofgreen.co.uk
 License: BSD
 */
 
 class ElastikErrorLogging {
+	/** This is used by Local Error Reporting communication method only **/
+	public static $PHPExec = 'php';
+
 	public static function activate() {
-		add_option('ElastikErrorLoggingRemoteHost', '');
 		add_option('ElastikErrorLoggingRemoteID', '');
 		add_option('ElastikErrorLoggingRemoteSecurityKey', '');
+
+		add_option('ElastikErrorLoggingRemoteHost', '');
+		add_option('ElastikErrorLoggingLocalSiteBase', '');
+		add_option('ElastikErrorLoggingBackgroundFolder', '');
 
 		add_option('ElastikErrorLoggingIncludeCookies', 'yes');
 
@@ -48,16 +54,31 @@ class ElastikErrorLogging {
 	}
 
 	public static function init() {
-		if (get_option('ElastikErrorLoggingRemoteHost') && get_option('ElastikErrorLoggingRemoteID') && get_option('ElastikErrorLoggingRemoteSecurityKey')) {
+		if (self::isConfiguredFastMethod()) {
 			set_exception_handler('ElastikErrorLogging::report_exception');
 			set_error_handler('ElastikErrorLogging::report_error');
 			register_shutdown_function('ElastikErrorLogging::shut_down_function');
 		}
 	}
 
+	/** only uses quick validation methods, eg, no file system checks  **/
+	public static function isConfiguredFastMethod() {
+		if (!intval(get_option('ElastikErrorLoggingRemoteID'))) return false;
+		if (strlen(get_option('ElastikErrorLoggingRemoteSecurityKey')) < 10 ) return false;
+
+		return get_option('ElastikErrorLoggingRemoteHost') || get_option('ElastikErrorLoggingLocalSiteBase') || get_option('ElastikErrorLoggingBackgroundFolder');
+	}
+
+	public static function isConfiguredCompleteMethod() {
+		if (!self::isConfiguredFastMethod()) return false;
+		// TODO: File system checks, if appropriate.
+		return true;
+	}
+
 	public static function options_page() {
 		$SERVER_PINGED = false;
-		if (isset($_POST['PingServer']) && $_POST['PingServer'] == 'please') {
+		$IS_CONFIGURED = ElastikErrorLogging::isConfiguredCompleteMethod();
+		if ($IS_CONFIGURED && isset($_POST['PingServer']) && $_POST['PingServer'] == 'please') {
 			self::ping_server();
 			$SERVER_PINGED = true;
 		}
@@ -182,6 +203,18 @@ class ElastikErrorLogging {
 		$data['SiteSecurityKey'] = get_option('ElastikErrorLoggingRemoteSecurityKey');
 		//print_r($data);
 
+		if (get_option('ElastikErrorLoggingBackgroundFolder')) {
+			self::send_background_data($data);
+		} else if (get_option('ElastikErrorLoggingLocalSiteBase')) {
+			self::send_local_data($data);
+		} else if (get_option('ElastikErrorLoggingRemoteHost')) {
+			self::send_remote_data($data);
+		} else {
+			die('You have not configured any communication methods!');
+		}
+	}
+
+	private static function send_remote_data($data) {
 		$url = "http://".get_option('ElastikErrorLoggingRemoteHost')."/mod.ErrorReportingService/api.php";
 
 		// Method 1: CURL
@@ -243,6 +276,53 @@ class ElastikErrorLogging {
 
 	}
 
+	private static function send_local_data($data) {
+		$exec =  self::$PHPExec.' '.get_option('ElastikErrorLoggingLocalSiteBase').DIRECTORY_SEPARATOR.'mod.ErrorReportingService'.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR.'localAPI.php';
+
+		$descriptorspec = array(
+		   0 => array("pipe", "r"),  // stdin
+		   1 => array("pipe", "w"),  // stdout
+		   2 => array("pipe", "r") // stderr
+		);
+		$cwd = get_option('ElastikErrorLoggingLocalSiteBase');
+		$env = array();
+
+		$process = proc_open($exec, $descriptorspec, $pipes, $cwd, $env);
+
+		if (is_resource($process)) {
+
+			fwrite($pipes[0], serialize($data));
+			fclose($pipes[0]);
+
+			$output = stream_get_contents($pipes[1]);
+			fclose($pipes[1]);
+
+			$error = stream_get_contents($pipes[2]);
+			fclose($pipes[2]);
+
+			$return_value = proc_close($process);
+			return;
+		}
+
+		print self::$errorMessageForUserEscapeContent;
+		print "WE COULD NOT SEND DATA AS NO SUITABLE MECHANISM WAS FOUND!";
+		die();
+	}
+
+	private static function send_background_data($data) {
+		$tmpfname = tempnam(get_option('ElastikErrorLoggingBackgroundFolder'), "ElastikErrorReportingService");
+
+		$handle = fopen($tmpfname, "w");
+		if ($handle){
+			fwrite($handle, serialize($data));
+			fclose($handle);
+			return;
+		}
+
+		print self::$errorMessageForUserEscapeContent;
+		print "WE COULD NOT SEND DATA AS NO SUITABLE MECHANISM WAS FOUND!";
+		die();
+	}
 }
 
 if (function_exists('add_action')) {

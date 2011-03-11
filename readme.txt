@@ -65,8 +65,11 @@ PHP 5.2 and above.
 
 = 0.2 =
 * Bug fix for PHP 5.2
+* Show message in admin page if not configured properly
+* Added local method of communicating with Elastik (Elastik version 0.4 and above only)
+* Added background method of communicating with Elastik (Elastik version 0.4 and above only)
 
 == Upgrade Notice ==
 
 = 0.2 =
-Bug fix for PHP 5.2.
+Bug fix for PHP 5.2. New methods for communicating with Elastik.
