@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: elastik-error-logging
-Plugin URI: http://elastik.sf.net
+Plugin URI: http://wordpress.org/extend/plugins/elastik-error-logging/
 Description: Logs errors with full information to an Elastik Ticket System. Errors can be tracked and emails can be sent to devs from there.L
 Version: 0.1
 Author: James
